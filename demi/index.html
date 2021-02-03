@@ -1,0 +1,122 @@
+<html>
+<body>
+<canvas id="mycanvas" width="1000" height="800"></canvas>
+<script>
+var cnv=document.getElementById("mycanvas");
+var ctx=cnv.getContext("2d");
+
+ctx.fillStyle = "black";
+//ctx.fillRect(40,40,20,20);
+
+
+function drawCircle(x,y,r){
+ctx.fillStyle = "black";
+ctx.beginPath();
+ctx.arc(x,y,r, 0, 2 * Math.PI);
+ctx.fill();
+}
+
+//drawCircle(40,40,20);
+function b64() { return ("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/=")[Math.floor(64*Math.random())]; }
+
+
+objects = {};
+function newobject(x,y,z,r){
+   var o={x:x,y:y,z:z,r:r,vx:0,vy:0,forces:[],m:3*r*r};
+   o.id=b64()+b64()+b64()+b64()+b64();
+   objects[o.id]=o;
+   return o;
+}
+
+function collisiondetection(o1,o2){
+    return (o1.x-o2.x)**2 + (o1.y-o2.y)**2 + (o1.z-o2.z)**2 < (o1.r+o2.r)**2;
+}
+
+function distance(o1,o2){
+    return Math.sqrt((o1.x-o2.x)**2 + (o1.y-o2.y)**2 + (o1.z-o2.z)**2);
+}
+
+function collisionsolution(o1,o2,dt){
+    //F=-k*x
+    var pen = o1.r+o2.r - distance(o1,o2);
+    if (pen <= 0) return;
+    var k = 525;// 7;
+    var F = k*pen; //away from pair object
+    var v1 = scalevec(F, normalvec(subvec(newvec3(o1.x,o1.y,o1.z), newvec3(o2.x,o2.y,o2.z))));
+    var v2 = scalevec(-1, v1);
+    applyForce(v1,o1);
+    applyForce(v2,o2);
+}
+
+function applyForce(F,o){ //F is vec3
+    o.forces.push(F);
+}
+
+function newvec3(x,y,z){ return {x:x,y:y,z:z}; }
+function addvec(v1,v2) { return newvec3(v1.x+v2.x, v1.y+v2.y, v1.z+v2.z); }
+function subvec(v1,v2) { return newvec3(v1.x-v2.x, v1.y-v2.y, v1.z-v2.z); }
+function scalevec(b,v) { return newvec3(b*v.x, b*v.y, b*v.z); }
+function magvec(v) { return Math.sqrt(v.x**2+v.y**2+v.z**2); }
+function normalvec(v) { return scalevec(1/magvec(v), v); }
+
+var mycamera = {pos:newvec3(0,0,0),up:newvec3(0,1,0),right:newvec3(1,0,0),forward:newvec3(0,0,1)};
+
+var mobj = newobject(10,50,0,5);
+mobj.vx=10;
+var mobj2 = newobject(40,80,0,5);
+mobj2.vy=-10;
+
+
+function draw(){
+     ctx.clearRect(0,0,1000,800);
+    for (key in objects){
+        var obj = objects[key];
+        //alert(obj);
+        drawCircle(obj.x, obj.y, obj.r);
+    }
+}
+
+function update(dt){
+    for (key in objects){
+        var obj = objects[key];
+        obj.x += obj.vx*dt;
+        obj.y += obj.vy*dt;
+    }
+    for (key in objects){
+        var obj = objects[key];
+        for (key2 in objects){
+            var obj2 = objects[key2];
+            if (obj != obj2 && collisiondetection(obj,obj2)){
+                //alert("collision detection");
+                collisionsolution(obj,obj2);
+                //alert(obj.forces, obj2.forces);
+            }
+        }
+    }
+
+
+
+    //after all interactions are done, collisions and bounds, sum all the applied forces into a resulting force, extract the resulting acceleration, and integrate numerically
+    for (key in objects){
+        var obj = objects[key];
+        var fres = newvec3(0,0,0);
+        for (var f in obj.forces){
+             var F = obj.forces[f];
+             fres = addvec(fres,F);
+        }
+        var ares = scalevec(1/obj.m, fres);
+        //integrate simply
+       obj.vx+=ares.x;
+       obj.vy+=ares.y;
+       obj.vz+=ares.z;
+       obj.forces = [];
+     }
+
+}
+
+setInterval(function(){ update(0.1); draw();}, 100);
+
+</script>
+
+</body>
+</html>
