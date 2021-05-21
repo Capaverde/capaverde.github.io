@@ -1,0 +1,78 @@
+<html>
+
+<canvas id="canvas" width="200" height="200"></canvas>
+<script>
+canvas = document.getElementById("canvas");
+context = canvas.getContext("2d");
+
+var mat = new Uint8Array(200*200);
+var mat2 = new Uint8Array(200*200);
+function access(x,y) { try { return mat[y*200+x]; } catch(e) { return 255; } }
+function num(x,y) { return y*200+x; }
+function matput(m,x,y,el) { m[num(x,y)]=el; }
+
+var updateels = [
+function(x,y) {},  //0 est nihil, non actire
+function(x,y) { var el2 = access(x,y+1); if (el2==0) { mat2[num(x,y)] = 0; mat2[num(x,y+1)] = 1; } else { mat2[num(x,y)]=1; }}, 
+//1 est petra, cadens
+function (x,y) { mat2[num(x,y)] = 2; },
+//2 est blocus, non cadens, indestructibile
+//3 est aqua, cadens, et, si non cadens, movere lateralis
+
+];
+
+var colorels = [
+    "#000000",
+    "#808080",
+    "#CCCCCC",
+    "#000080"
+];
+
+function load(){
+    for (var x=0; x<200; x++)
+    for (var y=0; y<200; y++){
+        mat[num(x,y)] = 0;
+        mat2[num(x,y)] = 0; //strictu, mat2[(x,y)]<-mat[(x,y)]
+    }
+    matput(mat,100,100,1);
+    matput(mat,100,98,1);
+    matput(mat,102,100,1);
+    matput(mat, 102,120, 2);
+}
+
+function update(){
+    for (var x=0; x<200; x++)
+    for (var y=0; y<200; y++){
+        var el = access(x,y);
+        updateels[el](x,y); //aplica functione secundo elementum
+    }
+    var tmp = mat; mat = mat2; mat2 = tmp;
+    for (var x=0; x<200; x++)
+    for (var y=0; y<200; y++){
+        mat2[num(x,y)] = 0;
+    }
+}
+
+function drawpixel(x,y,c){
+        context.beginPath();
+        context.fillStyle = c || '#000';
+      	context.fillRect(x, y, 1, 1);
+        context.fill();
+}
+
+function draw(){
+   for (var x=0; x<200; x++)
+    for (var y=0; y<200; y++){
+        drawpixel(x,y, colorels[access(x,y)]);
+    }
+}
+
+
+//principio
+load();
+setInterval(function() { update(); draw(); }, 200);
+
+</script>
+
+
+</html>
