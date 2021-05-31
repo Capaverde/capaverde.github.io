@@ -195,10 +195,10 @@ function update(){
         pl.v -= 90;
     }
     if (keyboard['Q']){
-        pl.om -= 2*Math.PI/3;
+        pl.om -= Math.PI/2;
     }
     if (keyboard['E']){
-        pl.om += 2*Math.PI/3;
+        pl.om += Math.PI/2;
     }
     if (keyboard['Space'] && t-pl.lt>=15){
         pl.fire(t,300);    //faz bullets desaparecerem após certo tempo/distância
