@@ -1,0 +1,365 @@
+<html>
+<!--
+Tipo futebol/haxball
+espaço atira, sempre para onde está olhando
+
+5x5, q/e gira, w/s vai para frente/trás
+espaço atira, e a bullet empurra
+tem uma bola no centro, que pode ser empurrada; se cair no gol é ponto
+
+queria que fosse como tanque...
+-->
+<head>
+<meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no" /> 
+<style>
+.block1991 {
+  display: block;
+  width: 100%;
+  border: none;
+  background-color: #04AA6D;
+  padding: 14px 28px;
+  font-size: 16px;
+  cursor: pointer;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+<canvas id="canvas" width="1024" height="512"></canvas>
+
+<button style="width:32%;height:20%;" ontouchstart="keyboard['Q']=true;this.style.borderWidth='thick';" ontouchend="keyboard['Q']=false;this.style.borderWidth='thin';" onclick="return; keyboard['Q']=!keyboard['Q'];this.style.borderWidth= (keyboard['Q']) ? 'thick' : 'thin';">Q</button>
+<button style="width:32%;height:20%;" ontouchstart="keyboard['W']=true;this.style.borderWidth='thick';" ontouchend="keyboard['W']=false;this.style.borderWidth='thin';" onclick="return; keyboard['W']=!keyboard['W'];this.style.borderWidth= (keyboard['W']) ? 'thick' : 'thin';">W</button>
+<button style="width:32%;height:20%;" ontouchstart="keyboard['E']=true;this.style.borderWidth='thick';" ontouchend="keyboard['E']=false;this.style.borderWidth='thin';" onclick="return; keyboard['E']=!keyboard['E'];this.style.borderWidth= (keyboard['E']) ? 'thick' : 'thin';">E</button>
+<br />
+<!--div style="width:33%;"></div> <button style="width:33%;" onclick="keyboard['S']=!keyboard['S'];">S</button>
+<br /-->
+<button style="width:96%;height:20%;" ontouchstart="keyboard['Space']=true;this.style.borderWidth='thick';" ontouchend="keyboard['Space']=false;this.style.borderWidth='thin';" onclick="return; keyboard['Space']=!keyboard['Space'];this.style.borderWidth= (keyboard['Space']) ? 'thick' : 'thin';">Space</button>
+
+<script>
+var mykeys = {
+    KeyQ:"Q",
+    KeyW:"W",
+    KeyE:"E",
+    KeyA:"A",
+    KeyS:"S",
+    KeyD:"D",
+    Space:"Space"
+}
+
+document.onkeydown = function (event){
+    keyboard[mykeys[event.code]] = true;
+}
+
+document.onkeyup = function (event){
+    keyboard[mykeys[event.code]] = false;
+}
+
+//var mywidth = 
+
+
+var canvas = document.getElementById("canvas");
+var context = canvas.getContext("2d");
+
+canvas.width = window.innerWidth*0.95; 
+canvas.height = window.innerHeight*0.55;
+
+//var x,y,th,r,v,om;
+var pl;
+
+function newmobile(x,y,th,r,hp){
+    var m = {ty:'m',x:x,y:y,th:th,r:r,v:0,om:0, hp:hp, lt:0};
+    m.fire = function(lt,life) { 
+        newbullet(m.x+1.5*m.r*Math.cos(m.th),m.y+1.5*m.r*Math.sin(m.th),200,m.th,lt,life,m); 
+        m.lt=lt; 
+    }
+    mobiles.push(m);
+    return m;
+}
+
+function newbullet(x,y,v,th,lt,life,firer){
+    var b = {ty:'b',ox:x,oy:y,x:x,y:y,r:5,vx:v*Math.cos(th),vy:v*Math.sin(th), lt:lt, life:life,firer:firer};
+    bullets.push(b);
+    return b;
+}
+
+/*function fire(lt,life) { 
+    newbullet(x+1.5*r*Math.cos(th),y+1.5*r*Math.sin(th),200,th,lt,life); 
+}*/
+
+var mobiles = [];
+var bullets = [];
+var walls = [];    //isto é, linhas 
+
+function newwall(x0,y0,x1,y1){
+    var w = {x0:x0,y0:y0,x1:x1,y1:y1}
+   /* w.intersect = function (o){    //uma bala ou um veículo
+        var ax=w.x0-o.x; var ay = w.y0-o.y;
+        var tx=w.x1-o.x; var ty = w.y1-o.y;
+        var dx = tx-ax; var dy=ty-ay;
+        var dr2=dx**2 + dy**2;
+        var det = ax*ty - tx*ay;
+        var discrim = o.r**2 * dr2 - det**2;
+        return discrim >= 0;
+    } */
+    walls.push(w);
+    return w;
+}
+
+function intersection(o1,o2){
+    return (o1.x-o2.x)**2 + (o1.y-o2.y)**2 <= (o1.r+o2.r)**2;
+}
+
+function load(){
+   /* x=25;
+    y=256;
+    th=0;
+    r=25;
+    v=0;
+    om=0; */
+    pl = newmobile(canvas.width/2,canvas.height/2,0,25,100);
+    //var enemy = newmobile(640,256,Math.PI,25);
+    //enemy.npc = true;
+    //newwall(600,200,600,300);
+    newspawner(50,50); newspawner(canvas.width-50,50);
+    newspawner(50,canvas.height-50); newspawner(canvas.width-50,canvas.height-50);
+}
+
+function diffang(a,b){
+var d = Math.abs(a - b) % (2*Math.PI);
+var r = (d > Math.PI) ? 2*Math.PI - d : d;
+ //calculate sign 
+var sign = (a - b >= 0 && a - b <= Math.PI) || (a - b <=-Math.PI && a- b>= -2*Math.PI) ? 1 : -1; 
+r *= sign;
+return r;
+}
+
+function IA(m){    //assume-se que m é npc, não é o player(pl)
+    if (pl.removed)
+        return;
+    //simples girar para atirar
+    var dx=pl.x-m.x; var dy=pl.y-m.y;
+    var d2 =dx**2 + dy**2;
+    var v = 0;
+    var om = 0;
+    if (d2 < (pl.r+m.r)**2){
+        //não persegue
+        v=0;
+    } else {
+        //persegue
+        v = 30;
+    }
+    m.th %= 2*Math.PI;
+    var tth = Math.atan2(dy,dx)%(2*Math.PI);  //de -pi a +pi
+    //tth = (tth < 0) ? tth + 2*Math.Pi : tth;
+    var dth = diffang(tth,m.th); //(tth - m.th)%(2*Math.PI);
+    //se m.th é em torno de pi, ou -pi, o que fazer?
+    //var dth2 = dth + 2*Math.PI;
+    if (Math.abs(dth) > Math.PI/3*dt){
+        //gira
+        var sign = Math.sign(dth);
+       // if (Math.abs(dth) > Math.PI && Math.abs(dth) < 2*Math.PI)
+           // sign *= -1;
+        om = sign*Math.PI/3;
+    } else {
+        //não gira
+        om=0;
+    }
+    m.th += om*dt;    
+    var vx=v*Math.cos(m.th);
+    var vy=v*Math.sin(m.th);
+    m.x+=vx*dt;
+    m.y+=vy*dt;
+
+    //sempre atira (reload 15)
+    if (t-m.lt>=15){
+        m.fire(t,15);
+        //m.lt=t;
+    }
+}
+
+var gameover=false;
+var score=0;
+var dt = 1/60;
+var t = 0;
+//var lt = 0;
+function update(){
+    t += 1;
+
+    if (!pl.removed){
+    pl.v = 0;
+    pl.om = 0;
+    if (keyboard['W']){
+        pl.v += 90;
+    }
+    if (keyboard['S']){
+        pl.v -= 90;
+    }
+    if (keyboard['Q']){
+        pl.om -= 2*Math.PI/3;
+    }
+    if (keyboard['E']){
+        pl.om += 2*Math.PI/3;
+    }
+    if (keyboard['Space'] && t-pl.lt>=15){
+        pl.fire(t,300);    //faz bullets desaparecerem após certo tempo/distância
+        //lt=t;
+    }
+    pl.th += pl.om*dt;    
+    var vx=pl.v*Math.cos(pl.th);
+    var vy=pl.v*Math.sin(pl.th);
+    pl.x+=vx*dt;
+    pl.y+=vy*dt;
+    }
+
+    for (var i=0;i<mobiles.length;i++){
+        var m = mobiles[i];
+        if (m.npc){
+            IA(m);
+        }
+    }
+
+    for (var i=0; i<bullets.length;i++){
+        var b = bullets[i];
+        if (b.removed)
+            continue;
+        if (t - b.lt >= b.life){
+            b.removed = true;
+            continue;
+        }
+        b.x += b.vx*dt;
+        b.y += b.vy*dt;
+        for (var j=0;j<mobiles.length;j++){
+            var m = mobiles[j];
+            if (intersection(b,m)){
+                if (b.firer.npc && m.npc){
+                    //nada
+                } else
+                    m.hp-=5;
+                b.removed=true;
+                if (m.hp<=0){
+                    m.removed=true;
+                    if (m.npc)
+                        score+=50;
+                }
+                continue;
+            }
+        }
+        /* for (var j=i+1;j<bullets.length;j++){
+            var b2 = bullets[j];
+            if (intersection(b,b2) && !b2.removed){
+                b.removed=true;
+                b2.removed=true;
+                continue;
+            } 
+        } */
+    }
+    bullets = bullets.filter(function(b){ return !b.removed; });
+    mobiles = mobiles.filter(function(m){ return !m.removed; });
+    if (pl.removed){
+        gameover=true;
+        return;
+    }
+    spawnman();
+}
+
+
+var spawners =[];
+function newspawner(x,y){
+    var s = {x:x,y:y};
+    newwall(x-50,y-50,x-50,y+50); newwall(x-50,y+50,x+50,y+50);
+    newwall(x+50,y+50,x+50,y-50); newwall(x+50,y-50,x-50,y-50);
+    spawners.push(s);
+    return s;
+}
+
+function wavecalc(w){
+    return Math.ceil(1.4**w);
+}
+var wave = 1;
+var wavelt=0;
+var zbag=[];
+function spawnman(){
+    var zees = wavecalc(wave);
+    var survivors = zbag.filter(function (z){ return !z.removed; }).length;
+    if (t-wavelt>=300){
+      if (t%120==1 && t-wavelt-300<zees*120){
+        var i = Math.floor(Math.random()*spawners.length);
+        var s = spawners[i];
+        var e = newmobile(s.x, s.y,Math.PI,25,25);
+        e.npc=true;
+        zbag.push(e);
+      }
+    }
+    if (zbag.length==zees && survivors==0){
+        wavelt=t;
+        wave+=1;
+        zbag=[];
+    }
+}
+
+
+
+
+function drawcircle(x,y,r,c){
+    context.fillStyle = c;
+    context.beginPath();
+    context.arc(x,y,r, 0, 2 * Math.PI);
+    context.stroke();
+}
+
+function drawline(x,y,tx,ty,c){
+    context.fillStyle = c;
+    context.beginPath();
+    context.moveTo(x,y);
+    context.lineTo(tx,ty);
+    context.stroke();
+}
+
+function draw(){
+    context.clearRect(0,0,canvas.width,canvas.height);
+   // drawcircle(x, y, r, "black");
+   // drawline(x,y,x+r*Math.cos(th),y+r*Math.sin(th));
+    context.fillText("wave: "+wave, 20,30);
+    context.fillText("score: "+score,20,50);
+    context.fillText("hit points: "+pl.hp,20,70);
+
+
+    for (var i=0;i<walls.length;i++){
+        var w = walls[i];
+        drawline(w.x0,w.y0,w.x1,w.y1);
+    }
+
+
+    for (var i=0;i<mobiles.length;i++){
+        var m = mobiles[i];
+        drawcircle(m.x, m.y, m.r, "black");
+        drawline(m.x,m.y,m.x+m.r*Math.cos(m.th),m.y+m.r*Math.sin(m.th));
+    }
+
+    for (var i=0;i<bullets.length;i++){
+        var b = bullets[i];
+        drawcircle(b.x, b.y, 5, "black");
+    }
+
+    if (gameover){
+        context.fillText("GAME OVER", canvas.width/2, canvas.height/2);
+        context.fillText("Refresh page to retry", canvas.width/2, canvas.height/2+20);
+        return;
+    }
+    if (t-wavelt<300){
+        var n = Math.ceil((t-wavelt)/60);
+        context.fillText(6-n, canvas.width/2, canvas.height/2);
+    } else if (t-wavelt<360){
+        context.fillText("Wave "+wave, canvas.width/2, canvas.height/2);
+    }
+}
+
+keyboard = {};
+
+
+
+load();
+setInterval(function(){ update(); draw(); }, 1000/60);
+</script>
+</body>
+</html>
