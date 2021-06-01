@@ -27,13 +27,13 @@ queria que fosse como tanque...
 <body>
 <canvas id="canvas" width="1024" height="512"></canvas>
 
-<button style="width:32%;height:20%;" ontouchstart="keyboard['Q']=true;this.style.borderWidth='thick';" ontouchend="keyboard['Q']=false;this.style.borderWidth='thin';" onclick="return; keyboard['Q']=!keyboard['Q'];this.style.borderWidth= (keyboard['Q']) ? 'thick' : 'thin';">Q</button>
-<button style="width:32%;height:20%;" ontouchstart="keyboard['W']=true;this.style.borderWidth='thick';" ontouchend="keyboard['W']=false;this.style.borderWidth='thin';" onclick="return; keyboard['W']=!keyboard['W'];this.style.borderWidth= (keyboard['W']) ? 'thick' : 'thin';">W</button>
-<button style="width:32%;height:20%;" ontouchstart="keyboard['E']=true;this.style.borderWidth='thick';" ontouchend="keyboard['E']=false;this.style.borderWidth='thin';" onclick="return; keyboard['E']=!keyboard['E'];this.style.borderWidth= (keyboard['E']) ? 'thick' : 'thin';">E</button>
+<button style="width:32%;height:20%;user-select:none;" ontouchstart="keyboard['Q']=true;this.style.borderWidth='thick';" ontouchend="keyboard['Q']=false;this.style.borderWidth='thin';" onclick="return; keyboard['Q']=!keyboard['Q'];this.style.borderWidth= (keyboard['Q']) ? 'thick' : 'thin';">Q</button>
+<button style="width:32%;height:20%;user-select:none;" ontouchstart="keyboard['W']=true;this.style.borderWidth='thick';" ontouchend="keyboard['W']=false;this.style.borderWidth='thin';" onclick="return; keyboard['W']=!keyboard['W'];this.style.borderWidth= (keyboard['W']) ? 'thick' : 'thin';">W</button>
+<button style="width:32%;height:20%;user-select:none;" ontouchstart="keyboard['E']=true;this.style.borderWidth='thick';" ontouchend="keyboard['E']=false;this.style.borderWidth='thin';" onclick="return; keyboard['E']=!keyboard['E'];this.style.borderWidth= (keyboard['E']) ? 'thick' : 'thin';">E</button>
 <br />
 <!--div style="width:33%;"></div> <button style="width:33%;" onclick="keyboard['S']=!keyboard['S'];">S</button>
 <br /-->
-<button style="width:96%;height:20%;" ontouchstart="keyboard['Space']=true;this.style.borderWidth='thick';" ontouchend="keyboard['Space']=false;this.style.borderWidth='thin';" onclick="return; keyboard['Space']=!keyboard['Space'];this.style.borderWidth= (keyboard['Space']) ? 'thick' : 'thin';">Space</button>
+<button style="width:96%;height:20%;user-select:none;" ontouchstart="keyboard['Space']=true;this.style.borderWidth='thick';" ontouchend="keyboard['Space']=false;this.style.borderWidth='thin';" onclick="return; keyboard['Space']=!keyboard['Space'];this.style.borderWidth= (keyboard['Space']) ? 'thick' : 'thin';">Space</button>
 
 <script>
 var mykeys = {
