@@ -114,6 +114,13 @@ function newwall(x0,y0,x1,y1){
     return w;
 }
 
+var healthpacks = [];
+function newhealthpack(x,y,L,hp){
+    var h = {x:x,y:y,L:L,r:L/1.4,hp:hp};
+    healthpacks.push(h);
+    return h;
+}
+
 function intersection(o1,o2){
     return (o1.x-o2.x)**2 + (o1.y-o2.y)**2 <= (o1.r+o2.r)**2;
 }
@@ -220,6 +227,16 @@ function update(){
     pl.y+=vy*dt;
     }
 
+    for (var i=0;i<healthpacks.length;i++){
+        var h = healthpacks[i];
+        if (intersection(pl,h) && pl.hp < 100){
+            h.removed=true;
+            pl.hp+=h.hp;
+            pl.hp = Math.min(pl.hp,100);
+        }
+    }
+    healthpacks = healthpacks.filter(function (h){ return !h.removed; });
+
     for (var i=0;i<mobiles.length;i++){
         var m = mobiles[i];
         if (m.npc){
@@ -247,8 +264,12 @@ function update(){
                 b.removed=true;
                 if (m.hp<=0){
                     m.removed=true;
-                    if (m.npc)
+                    if (m.npc){
                         score+=50;
+                        if (Math.random()<0.05){
+                            newhealthpack(m.x, m.y, 20, 20);
+                        }
+                    }
                 }
                 continue;
             }
@@ -339,6 +360,12 @@ function draw(){
         drawline(w.x0,w.y0,w.x1,w.y1);
     }
 
+    for (var i=0;i<healthpacks.length;i++){
+        var h = healthpacks[i];
+        drawcircle(h.x, h.y, h.r, "black");
+        drawline(h.x,h.y-h.r,h.x,h.y+h.r);
+        drawline(h.x-h.r,h.y,h.x+h.r,h.y);
+    }
 
     for (var i=0;i<mobiles.length;i++){
         var m = mobiles[i];
