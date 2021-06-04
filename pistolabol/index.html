@@ -205,10 +205,10 @@ function update(){
     pl.v = 0;
     pl.om = 0;
     if (keyboard['W']){
-        pl.v += 90*fac;
+        pl.v += 120*fac;
     }
     if (keyboard['S']){
-        pl.v -= 90*fac;
+        pl.v -= 120*fac;
     }
     if (keyboard['Q']){
         pl.om -= Math.PI/2;
@@ -267,7 +267,7 @@ function update(){
                     if (m.npc){
                         score+=50;
                         if (Math.random()<0.05){
-                            newhealthpack(m.x, m.y, 20, 20);
+                            newhealthpack(m.x, m.y, 20*fac, 20);
                         }
                     }
                 }
