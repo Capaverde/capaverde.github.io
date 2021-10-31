@@ -1,0 +1,36 @@
+<html>
+<!-- log app offline usando cookies ou storage -->
+<div id="logs"></div>
+<input type="text" id="log"></input>
+<button onclick="submit()">Submit</button>
+<script>
+var mylogs=document.getElementById("logs");
+var mylog=document.getElementById("log");
+function submit(){
+    var txt=mylog.value;
+    if (txt=="") return;
+    mylog.value = "";
+    mylogs.innerHTML += removeEntities(txt) +"</br>";
+    window.localStorage.setItem("myfile", mylogs.innerHTML);
+}
+function removeEntities(str){
+    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+window.addEventListener('load', function(){
+   if (storageAvailable()){
+        mylogs.innerHTML = window.localStorage.getItem("myfile");
+    } else {
+        mylogs.innerHTML = "storage unavailable<br/>";
+    }
+});
+
+function storageAvailable() {
+    if(window.localStorage)
+        return true;
+    else
+        return false;
+ }
+
+</script>
+</html>
