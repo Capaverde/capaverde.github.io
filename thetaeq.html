@@ -1,0 +1,35 @@
+<html>
+<canvas id="canvas" width="300" height="300"></canvas>
+<br/>theta(t)=<input id="input" type="text" value="t/5"></input><br/>tmax<input id="tmax" type="text" value="100"></input><button onclick="run()">Run</button>
+<script>
+canvas=document.getElementById("canvas");
+ctx=canvas.getContext("2d");
+input=document.getElementById("input");
+tmax=document.getElementById("tmax");
+function line(x0,y0,x1,y1){
+  ctx.beginPath();
+  ctx.moveTo(x0,canvas.height-y0);
+  ctx.lineTo(x1,canvas.height-y1);
+  ctx.stroke()
+}
+function run(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  var dt=0.01;
+  var t=0;
+  var x=canvas.width/2;
+  var y=canvas.height/2;
+  var formula=input.value;
+  var mytmax=1*tmax.value;
+  while (t<mytmax){
+    var theta=eval(formula);
+    t+=dt;
+    var lastx=x; var lasty=y;
+    x=lastx+Math.cos(theta)*dt;
+    y=lasty+Math.sin(theta)*dt;
+    line(lastx,lasty,x,y);
+  }
+}
+
+
+</script>
+</html>
