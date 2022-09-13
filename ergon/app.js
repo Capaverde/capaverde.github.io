@@ -13,9 +13,9 @@ function lentoy(len){
 
 
 function load(){
-    //mat[xytolen(8,16)]=-1;
-    mat[xytolen(7,16)]=-1;
-    mat[xytolen(23,16)]=-1;
+    mat[xytolen(16,16)]=-1;
+    //mat[xytolen(7,16)]=-1;
+    //mat[xytolen(23,16)]=-1;
     
     //mat[xytolen(14,14)]=254;
     //mat[xytolen(16,14)]=254;
