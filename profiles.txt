@@ -1,5 +1,0 @@
-profiles:
-
-https://github.com/Capaverde
-discord: Capaverde#3863
-!Ps1ivhrO6w
