@@ -67,7 +67,9 @@ function updateCell(x,y){
     }
   }
 */
+var mybreak=false;
 for (var i=x-1;i<=x+1;i+=1){
+  mybreak=false;
     for (var j=y-1;j<=y+1;j+=1){
       var v=Math.floor(diffvalues[it]/8);
       if (myvalue>=v && Math.random()<=diffvalues[it]/S){
@@ -75,10 +77,13 @@ for (var i=x-1;i<=x+1;i+=1){
         //o selecionado recebe floor(diffvalue/2)
         mat[xytolen(x,y)]-=v
         mat[xytolen(i,j)]+=v;
+        mybreak=true;
         break;
       }
       it++;
     }
+    if (mybreak)
+      break;
   }
 
 }
