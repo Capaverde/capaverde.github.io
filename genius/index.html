@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Genius Memory Trainer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      background: #111;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+
+    #score {
+      font-size: 1.2em;
+      margin-bottom: 20px;
+    }
+
+    .game {
+      display: grid;
+      grid-template-columns: repeat(2, 150px);
+      grid-gap: 15px;
+      justify-content: center;
+      margin: 20px auto;
+    }
+
+    .btn {
+      width: 150px;
+      height: 150px;
+      border-radius: 15px;
+      opacity: 0.7;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    .btn:active {
+      transform: scale(0.95);
+    }
+
+    .red { background: #e74c3c; }
+    .green { background: #2ecc71; }
+    .blue { background: #3498db; }
+    .yellow { background: #f1c40f; }
+
+    .active {
+      opacity: 1;
+    }
+
+    button#start {
+      margin-top: 20px;
+      padding: 12px 25px;
+      font-size: 1em;
+      border: none;
+      border-radius: 8px;
+      background: #fff;
+      color: #000;
+      cursor: pointer;
+    }
+
+    button#start:hover {
+      background: #ddd;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>🧠 Memory Trainer</h1>
+  <div id="score">Sequência: 0</div>
+
+  <div class="game">
+    <div class="btn red" data-color="red"></div>
+    <div class="btn green" data-color="green"></div>
+    <div class="btn blue" data-color="blue"></div>
+    <div class="btn yellow" data-color="yellow"></div>
+  </div>
+
+  <button id="start">Iniciar</button>
+
+  <script>
+let bestScore = localStorage.getItem("bestScore") || 0;
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+const soundMap = {
+  red: 261.6,    // C4
+  green: 329.6,  // E4
+  blue: 392.0,   // G4
+  yellow: 523.3  // C5
+};
+
+function playSound(color, duration = 300) {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+
+  osc.frequency.value = soundMap[color];
+  osc.type = "sine";
+
+  gain.gain.setValueAtTime(0.001, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.3, audioCtx.currentTime + 0.02);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration / 1000);
+
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+
+  osc.start();
+  osc.stop(audioCtx.currentTime + duration / 1000);
+}
+
+    const buttons = document.querySelectorAll(".btn");
+    const scoreDisplay = document.getElementById("score");
+
+    const startButton = document.getElementById("start");
+
+    const colors = ["red", "green", "blue", "yellow"];
+    let sequence = [];
+    let userSequence = [];
+    let acceptingInput = false;
+
+    function flash(color) {
+      const btn = document.querySelector(`.${color}`);
+      btn.classList.add("active");
+      playSound(color);
+      setTimeout(() => btn.classList.remove("active"), 400);
+    }
+
+    function playSequence() {
+      acceptingInput = false;
+      let i = 0;
+
+      const interval = setInterval(() => {
+        flash(sequence[i]);
+        i++;
+        if (i >= sequence.length) {
+          clearInterval(interval);
+          acceptingInput = true;
+        }
+      }, 700);
+    }
+
+    function nextRound() {
+      userSequence = [];
+      const randomColor = colors[Math.floor(Math.random() * colors.length)];
+      sequence.push(randomColor);
+      scoreDisplay.textContent = `Sequência: ${sequence.length} | Recorde: ${bestScore}`;
+      setTimeout(playSequence, 500);
+    }
+
+    function resetGame() {
+        if (sequence.length > bestScore) {
+            bestScore = sequence.length;
+            localStorage.setItem("bestScore", bestScore);
+         }
+      alert(`Fim de jogo! Você chegou à sequência ${sequence.length}`);
+      sequence = [];
+      userSequence = [];
+      acceptingInput = false;
+      scoreDisplay.textContent = `Sequência: 0 | Recorde: ${bestScore}`;
+    }
+
+    buttons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        if (!acceptingInput) return;
+
+        const color = btn.dataset.color;
+        flash(color);
+        userSequence.push(color);
+
+        const index = userSequence.length - 1;
+        if (userSequence[index] !== sequence[index]) {
+          resetGame();
+          return;
+        }
+
+        if (userSequence.length === sequence.length) {
+          setTimeout(nextRound, 800);
+        }
+      });
+    });
+
+    startButton.addEventListener("click", () => {
+      audioCtx.resume();
+      sequence = [];
+      scoreDisplay.textContent = `Sequência: 0 | Recorde: ${bestScore}`;
+      nextRound();
+    });
+  </script>
+
+</body>
+</html>
