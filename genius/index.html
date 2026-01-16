@@ -116,6 +116,7 @@ function playSound(color, duration = 300) {
 
     const buttons = document.querySelectorAll(".btn");
     const scoreDisplay = document.getElementById("score");
+    scoreDisplay.textContent = `Sequência: 0 | Recorde: ${bestScore}`;
 
     const startButton = document.getElementById("start");
 
