@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Intuition Guess</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#111827" />
+
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #0f172a;
+      color: #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .card {
+      background: #020617;
+      padding: 24px;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 1.4rem;
+      text-align: center;
+    }
+    label {
+      font-size: 0.9rem;
+      opacity: 0.85;
+    }
+    input, button {
+      width: 100%;
+      margin-top: 8px;
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+      font-size: 1rem;
+    }
+    input {
+      background: #020617;
+      color: #e5e7eb;
+      border: 1px solid #1e293b;
+    }
+    button {
+      background: #2563eb;
+      color: white;
+      cursor: pointer;
+    }
+    button.secondary {
+      background: #020617;
+      border: 1px solid #1e293b;
+      margin-top: 12px;
+    }
+    .log {
+      margin-top: 16px;
+      font-size: 0.9rem;
+      min-height: 1.2em;
+    }
+    .history {
+      margin-top: 16px;
+      font-size: 0.8rem;
+      opacity: 0.85;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>Intuition Guess</h1>
+
+    <label>Intervalo máximo (N)</label>
+    <input type="number" id="maxN" value="100" min="2" />
+
+    <button onclick="startGame()">Iniciar novo jogo</button>
+
+    <div id="gameArea" style="display:none">
+      <label style="margin-top:12px;display:block">Seu palpite</label>
+      <input type="number" id="guess" />
+      <button onclick="submitGuess()">Enviar palpite</button>
+      <div class="log" id="feedback"></div>
+    </div>
+
+    <button class="secondary" onclick="resetStats()">Resetar histórico</button>
+
+    <div class="history" id="history"></div>
+  </div>
+
+<script>
+  let secret = null;
+  let attempts = 0;
+  let currentMaxN = null;
+
+  const historyKey = 'intuition-history';
+
+  function startGame() {
+    const maxN = parseInt(document.getElementById('maxN').value);
+    if (maxN < 2) return;
+
+    currentMaxN = maxN;
+    secret = Math.floor(Math.random() * maxN) + 1;
+    attempts = 0;
+
+    document.getElementById('feedback').textContent = 'Número gerado. Sinta antes de chutar.';
+    document.getElementById('gameArea').style.display = 'block';
+    document.getElementById('guess').value = '';
+    document.getElementById('guess').focus();
+  }
+
+  function submitGuess() {
+    if (secret === null) return;
+
+    const g = parseInt(document.getElementById('guess').value);
+    if (isNaN(g)) return;
+
+    attempts++;
+
+    if (g === secret) {
+      document.getElementById('feedback').textContent = `✔ Acertou em ${attempts} tentativas.`;
+      saveResult(attempts);
+      secret = null;
+      updateHistory();
+    } else {
+      document.getElementById('feedback').textContent = '❌ Errado. Tente novamente.';
+    }
+
+    document.getElementById('guess').value = '';
+    document.getElementById('guess').focus();
+  }
+
+  function saveResult(attempts) {
+    const data = JSON.parse(localStorage.getItem(historyKey) || '[]');
+    data.push({ date: new Date().toISOString(), maxN: currentMaxN, attempts });
+    localStorage.setItem(historyKey, JSON.stringify(data));
+  }
+
+  function updateHistory() {
+    const data = JSON.parse(localStorage.getItem(historyKey) || '[]');
+    if (data.length === 0) {
+      document.getElementById('history').textContent = 'Sem registros ainda.';
+      return;
+    }
+
+    //const avg = (data.reduce((s,d)=>s+d.attempts,0)/data.length).toFixed(2);
+   // document.getElementById('history').innerHTML = `
+  //    Jogos: ${data.length}<br>
+ //     Média de tentativas: ${avg}
+  //  `;
+const groups = {};
+
+data.forEach(d => {
+  groups[d.maxN] = groups[d.maxN] || [];
+  groups[d.maxN].push(d.attempts);
+});
+
+let html = '';
+Object.keys(groups).sort((a,b)=>a-b).forEach(n => {
+  const arr = groups[n];
+  const avg = (arr.reduce((s,v)=>s+v,0)/arr.length).toFixed(2);
+  html += `N=${n}: ${arr.length} jogos | média ${avg}<br>`;
+});
+
+document.getElementById('history').innerHTML = html;
+  }
+
+  function resetStats() {
+    localStorage.removeItem(historyKey);
+    updateHistory();
+  }
+
+  updateHistory();
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js');
+  }
+</script>
+
+</body>
+</html>
