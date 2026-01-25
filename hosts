@@ -29,10 +29,14 @@
 0.0.0.0 www.x.com
 0.0.0.0 x.com
 0.0.0.0 www.youtube.com
+0.0.0.0 m.youtube.com
 0.0.0.0 youtube.com
 0.0.0.0 www.pinterest.com
 0.0.0.0 pinterest.com
 0.0.0.0 br.pinterest.com
+0.0.0.0 www.facebook.com
+0.0.0.0 m.facebook.com
+0.0.0.0 facebook.com
 
 #porn sites not covered by antiporn hosts
 0.0.0.0 www.porngifpic.com
